@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/sahilrana7582/multi-tenent-e-com-user-service/internal/domain"
@@ -41,10 +42,11 @@ func (s *userService) RegisterUser(ctx context.Context, tenantID string, req dto
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
-		return nil, utils.StatusError{
-			Er:     err,
-			Status: http.StatusInternalServerError,
-		}
+		return nil, utils.NewStatusError(
+			fmt.Errorf("failed to create user in repo: %w", err),
+			http.StatusInternalServerError,
+			"failed to create user in repo",
+		)
 	}
 
 	return user, nil
