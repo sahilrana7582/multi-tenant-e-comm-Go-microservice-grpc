@@ -10,6 +10,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sahilrana7582/multi-tenent-e-com-user-service/config"
 	"github.com/sahilrana7582/multi-tenent-e-com-user-service/internal/db"
+	"github.com/sahilrana7582/multi-tenent-e-com-user-service/internal/handler"
+	"github.com/sahilrana7582/multi-tenent-e-com-user-service/internal/repository"
+	"github.com/sahilrana7582/multi-tenent-e-com-user-service/internal/routes"
+	"github.com/sahilrana7582/multi-tenent-e-com-user-service/internal/service"
 )
 
 func main() {
@@ -27,8 +31,15 @@ func main() {
 	dbConn := db.MustConnect(ctx, cfg.DatabaseURL)
 	defer dbConn.Close()
 
+	userRepo := repository.NewUserRepository(dbConn)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	router := routes.NewRouter(userHandler)
+
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Handler:      router,
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
 		IdleTimeout:  cfg.IdleTimeout,
